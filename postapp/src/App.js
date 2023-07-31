@@ -1,47 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import './App.css';
+import Post from './Posts';
 
 const App = () => {
   const [posts, setPosts] = useState([]);
-  const [filteredPosts, setFilteredPosts] = useState([]);
   const [searchText, setSearchText] = useState('');
+  const [filteredPosts, setFilteredPosts] = useState([]);
 
   useEffect(() => {
-    fetchPosts();
+    // Fetch posts from API only once on component mount
+    fetch('https://jsonplaceholder.typicode.com/posts')
+      .then((response) => response.json())
+      .then((data) => {
+        setPosts(data);
+        setFilteredPosts(data);
+      })
+      .catch((error) => console.error('Error fetching posts:', error));
   }, []);
 
-  // Fetch posts from API
-  const fetchPosts = async () => {
-    try {
-      const response = await fetch('https://jsonplaceholder.typicode.com/posts');
-      const data = await response.json();
-      setPosts(data);
-      setFilteredPosts(data);
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-    }
-  };
-
-  // Filter posts based on the search text
-  const filterPosts = () => {
-    const searchTextLowerCase = searchText.toLowerCase();
-    const filteredPosts = posts.filter(post =>
-      post.title.toLowerCase().includes(searchTextLowerCase)
+  const handleSearch = () => {
+    // Filter the posts based on the search text when the button is clicked
+    const filtered = posts.filter((post) =>
+      post.title.toLowerCase().includes(searchText.toLowerCase())
     );
-    setFilteredPosts(filteredPosts);
+    setFilteredPosts(filtered);
   };
 
   return (
-    <div className="container">
-      <input
-        type="text"
-        placeholder="Search posts..."
-        value={searchText}
-        onChange={e => setSearchText(e.target.value)}
-      />
-      <button onClick={filterPosts}>Search</button>
-      <div id="postList">
-        {filteredPosts.map(post => (
+    <div className="app-container">
+      <div className="search-container">
+        <input
+          type="text"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          placeholder="Enter search text"
+        />
+        <button onClick={handleSearch}>Search</button>
+      </div>
+      <div className="posts-container">
+        {filteredPosts.map((post) => (
           <Post key={post.id} title={post.title} body={post.body} />
         ))}
       </div>
@@ -49,14 +45,4 @@ const App = () => {
   );
 };
 
-const Post = ({ title, body }) => {
-  return (
-    <div className="post-card">
-      <h3>{title}</h3>
-      <p>{body}</p>
-    </div>
-  );
-};
-
 export default App;
-
